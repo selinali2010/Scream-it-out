@@ -1,7 +1,15 @@
+#include <Wire.h>
+#include "rgb_lcd.h"
+
+rgb_lcd display;
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
   pinMode(LED_BUILTIN, OUTPUT);
+  display.begin(16, 2);
+  display.print("hk4li and sk6li");
+  delay(1000);
 }
 
 void loop() {
@@ -13,5 +21,8 @@ void loop() {
   } else {
     digitalWrite(LED_BUILTIN, LOW);
   }
-  delay(250);
+  display.setCursor(0,1);
+  display.clear();
+  display.print(sensorValue);
+  delay(100);
 }
