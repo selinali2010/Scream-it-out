@@ -44,7 +44,9 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(4, INPUT);
   display.begin(16, 2);
-  display.print("hk4li and sk6li");
+  display.print("Scream 2 Win!");
+  display.setCursor(0,1);
+  display.print("By hk4li & sk6li");
   display.createChar(0, bar);
   display.createChar(1, smiley);
   display.createChar(2, canister);
@@ -151,6 +153,9 @@ void loop() {
     if(millis() - gameTime > GAMELENGTH){
       state = END;
     } else {// if(buttonValue == HIGH){
+      if(millis() - gameTime > 9*GAMELENGTH/10){
+        display.setRGB(230, 0, 0);
+      }
       sensorValue = analogRead(A1);
       if(sensorValue >= 300){
         gauge += sensorValue - 300;
@@ -186,9 +191,14 @@ void loop() {
     printCans(cans);
     updateRanking(cans);
     printTime(gameTime);
+    display.setRGB(255, 51, 51);
+    display.setCursor(0,1);
+    display.print("Tiiiiime's up!!!");
+    delay(3000);
+    display.setColorWhite();
     display.setCursor(0,1);
     display.print("Thnx 4 play'n!");
-    delay(5000);
+    delay(4000);
     state = REPLAY;
   } else if(state == REPLAY){
     display.setCursor(0,1);
