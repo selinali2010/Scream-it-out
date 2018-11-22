@@ -36,12 +36,12 @@ byte canister[8] = {
 int STARTUP = 0, READY = 1, SCREAM = 2, END = 3, REPLAY = 4;
 int FULLCAN = 750;
 unsigned long GAMELENGTH = 30000;
-String PLAYERS[] = {"Sulley", "Randall", "You"};
-int topScores[2] = {13125, 11850};
-
+String PLAYERS[] = {"Sulley", "Randall", "Ranft", "Luckey", "You"};
+int TOPSCORES[] = {13125, 11850, 9617, 8173};
+    
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(9600);
+  //Serial.begin(9600);
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(4, INPUT);
   display.begin(16, 2);
@@ -57,6 +57,7 @@ void setup() {
 int countBars = 0, sensorValue = 0, buttonValue = 0, state = STARTUP;
 int gauge = 0, cans = 0;
 unsigned long gameTime = 0;
+String leaderboard[5];
 
 void printCans(int numCans){
   display.setCursor(0,0);
@@ -73,23 +74,18 @@ void updateRanking(int score){
   display.setCursor(3, 0);
   switch (score) {
   case 0 ... 2:
-    Serial.print("B");
     display.print("Beginner");
     break;
   case 3 ... 5:
-    Serial.print("T");
     display.print(" Trainee");
     break;
   case 6 ... 8:
-    Serial.print("W");
     display.print("  Worker");
     break;
    case 9 ... 12:
-    Serial.print("M");
     display.print("  Master");
     break;
   default:
-    Serial.print("G");
     display.print("  Genius");
     break;
   }
@@ -111,14 +107,51 @@ void printTime(int gameTime){
   }
 }
 
-void printScores(int a, int b, int c, String s1, String s2, String s3){
+int matchingScore(String player, int userScore){
+  if(player == "Sulley"){
+    return 13125;
+  } else if(player == "Randall"){
+    return 11850;
+  } else if (player == "Ranft"){
+    return 9617;
+  } else if(player == "Luckey"){
+    return 8173;
+  } else {
+    return userScore;
+  }
+}
+
+void shift(int index, String leaderboard[]){
+  String temp = leaderboard[4];
+  for(int x = 4; x > index; x--){
+    leaderboard[x] = leaderboard[x-1];
+  }
+  leaderboard[index] = temp;
+}
+
+void printScores(int userScore){
+  for(int x = 0; x < 5; x++){
+    leaderboard[x] = PLAYERS[x];
+  }
+  
+  for(int i = 0; i < 4; i++){
+    if(userScore > TOPSCORES[i]){
+      shift(i, leaderboard);
+      break;
+    }
+  }
   display.setCursor(0,1);
-  display.print("1." + String(s1) + ": " + a + "     "); 
+  display.print("1." + leaderboard[0] + ": " + matchingScore(leaderboard[0], userScore) + "                "); 
   delay(3000);
-  display.setCursor(0,0);
-  display.print("2." + String(s2) + ": " + b + "     ");
-  display.setCursor(0,1);
-  display.print("3." + String(s3) + ": " + c + "     ");
+  for(int i = 1; i < 4; i+=2){
+    display.setCursor(0,0);
+    display.print(i+1);
+    display.print("." + leaderboard[i] + ": " + matchingScore(leaderboard[i], userScore) + "                   ");
+    display.setCursor(0,1);
+    display.print(i+2);
+    display.print("." + leaderboard[i+1] + ": " + matchingScore(leaderboard[i+1], userScore) + "                     ");
+    delay(3000);
+  }
 }
 
 void loop() {
@@ -157,7 +190,7 @@ void loop() {
         gauge += 2*sensorValue - 600;
       }
       
-      Serial.println(sensorValue);
+      //Serial.println(sensorValue);
       
       display.setCursor(countBars,1);
       if(gauge > FULLCAN){
@@ -188,14 +221,7 @@ void loop() {
     display.setCursor(0,0);
     display.print("Leaderboard     ");
     int score = (gauge+countBars*750+cans*750*17)/10;
-    if(score > topScores[0]){
-      printScores(score,topScores[0],topScores[1],PLAYERS[2],PLAYERS[0],PLAYERS[1]);
-    } else if(score > topScores[1]){
-      printScores(topScores[0],score,topScores[1],PLAYERS[0],PLAYERS[2],PLAYERS[1]);
-    } else {
-      printScores(topScores[0],topScores[1],score,PLAYERS[0],PLAYERS[1],PLAYERS[2]);
-    }
-    delay(4000);
+    printScores(score);
     state = REPLAY;
   } else if(state == REPLAY){
     display.setCursor(0,0);
