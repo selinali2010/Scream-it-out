@@ -36,7 +36,8 @@ byte canister[8] = {
 int STARTUP = 0, READY = 1, SCREAM = 2, END = 3, REPLAY = 4;
 int FULLCAN = 750;
 unsigned long GAMELENGTH = 30000;
-
+String PLAYERS[] = {"Sulley", "Randall", "You"};
+int topScores[2] = {13125, 11850};
 
 void setup() {
   // put your setup code here, to run once:
@@ -44,7 +45,7 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(4, INPUT);
   display.begin(16, 2);
-  display.print("Scream 2 Win!");
+  display.print("Scream it out!");
   display.setCursor(0,1);
   display.print("By hk4li & sk6li");
   display.createChar(0, bar);
@@ -52,22 +53,6 @@ void setup() {
   display.createChar(2, canister);
   delay(1000);
 }
-
-/*
-Sulley
-Randall
-Joe Ranft
-Bud Luckey
-Noodles Rivera
-Bob Peterson
-Spike Jones
-George Sanderson
-Ricky Plesuski
-Lanky Schmidt
-Ted Pauley
-Claws Ward
-Harley Gerson
-*/
 
 int countBars = 0, sensorValue = 0, buttonValue = 0, state = STARTUP;
 int gauge = 0, cans = 0;
@@ -126,6 +111,16 @@ void printTime(int gameTime){
   }
 }
 
+void printScores(int a, int b, int c, String s1, String s2, String s3){
+  display.setCursor(0,1);
+  display.print("1." + String(s1) + ": " + a + "     "); 
+  delay(3000);
+  display.setCursor(0,0);
+  display.print("2." + String(s2) + ": " + b + "     ");
+  display.setCursor(0,1);
+  display.print("3." + String(s3) + ": " + c + "     ");
+}
+
 void loop() {
   buttonValue = digitalRead(4);
   
@@ -144,6 +139,7 @@ void loop() {
     
     if(buttonValue == 1){
       state = SCREAM;
+      display.setRGB(90, 255, 0);
       gameTime = millis();
       display.clear();
       printCans(cans);
@@ -157,8 +153,8 @@ void loop() {
         display.setRGB(230, 0, 0);
       }
       sensorValue = analogRead(A1);
-      if(sensorValue >= 300){
-        gauge += sensorValue - 300;
+      if(sensorValue >= 600){
+        gauge += 2*sensorValue - 600;
       }
       
       Serial.println(sensorValue);
@@ -169,13 +165,6 @@ void loop() {
         countBars++;
         display.write(byte(0)); 
       }
-
-      /*
-      display.setCursor(4,0);
-      display.print(gauge);
-      display.print("  ");
-      display.setCursor(countBars,1);
-      */
       
       if(countBars == 17){
         cans++;
@@ -196,13 +185,23 @@ void loop() {
     display.print("Tiiiiime's up!!!");
     delay(3000);
     display.setColorWhite();
-    display.setCursor(0,1);
-    display.print("Thnx 4 play'n!");
+    display.setCursor(0,0);
+    display.print("Leaderboard     ");
+    int score = (gauge+countBars*750+cans*750*17)/10;
+    if(score > topScores[0]){
+      printScores(score,topScores[0],topScores[1],PLAYERS[2],PLAYERS[0],PLAYERS[1]);
+    } else if(score > topScores[1]){
+      printScores(topScores[0],score,topScores[1],PLAYERS[0],PLAYERS[2],PLAYERS[1]);
+    } else {
+      printScores(topScores[0],topScores[1],score,PLAYERS[0],PLAYERS[1],PLAYERS[2]);
+    }
     delay(4000);
     state = REPLAY;
   } else if(state == REPLAY){
+    display.setCursor(0,0);
+    display.print("Thnx 4 play'n!  ");
     display.setCursor(0,1);
-    display.print("Play again?     ");
+    display.print("Click to replay  ");
     if(buttonValue == 1){
       state = READY;
     }
